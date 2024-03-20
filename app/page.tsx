@@ -6,8 +6,13 @@ interface TodoProps {
   id: number;
 }
 
+const URL = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api`
+  : "http://127.0.0.1:8000";
+
 export default async function Home() {
-  const url = await fetch("http://127.0.0.1:8000/todos/", {
+  // const url = await fetch("http://S127.0.0.1:8000/todos/", {
+    const url = await fetch(`${URL}/todos/`, {
     cache: "no-store",
     next: {
       tags: ["todos"],
