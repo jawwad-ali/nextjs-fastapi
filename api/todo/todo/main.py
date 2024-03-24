@@ -51,7 +51,7 @@ def create_todo(todo: TodoHomework, session: Annotated[Session, Depends(get_sess
     session.refresh(todo)
     return todo
  
-# # Fetching Todos
+# Fetching Todos
 @app.get("/todos/", response_model=list[TodoHomework])
 def read_todos(session: Annotated[Session, Depends(get_session)]):
         todos = session.exec(select(TodoHomework)).all()
