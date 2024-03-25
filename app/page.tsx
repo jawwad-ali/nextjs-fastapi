@@ -1,23 +1,36 @@
 import { addTodos } from "@/app/server/actions";
-import DeleteButton  from "./components/DeleteButton";
+import DeleteButton, { UpdateCheckBox } from "./components/DeleteButton";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface TodoProps {
   title: string;
+  isCompleted: boolean;
   id: number;
 }
 
-const URL = process.env.NEXT_PUBLIC_VERCEL_URL
-  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api`
-  : "http://127.0.0.1:8000";
+const URL =
+  process.env.NODE_ENV === "development"
+    ? "http://127.0.0.1:8000/api"
+    : "/api/";
+console.log("URL", URL);
 
 export default async function Home() {
-  // const url = await fetch("http://S127.0.0.1:8000/todos/", {
-    const url = await fetch(`${URL}/todos/`, {
+  // const url = await fetch(`${URL}/api/todos/`, {
+  const url = await fetch("http://127.0.0.1:8000/api/todos/", {
     cache: "no-store",
     next: {
       tags: ["todos"],
     },
-  }); 
+  });
   const res = await url.json();
   console.log(res);
 
@@ -26,13 +39,7 @@ export default async function Home() {
       {/* Form */}
       <div className="flex flex-col w-1/2 mx-auto mt-5">
         <form action={addTodos}>
-          <input
-            name="title"
-            placeholder="Enter Title"
-            className="w-full border h-8 border-gray-400 rounded-md "
-          />
-          {/* <InputField res={res} /> */}
-
+          <Input name="title" placeholder="Add Todos..." />
           <button className="border w-full bg-blue-500 text-white p-2 rounded-md">
             Add
           </button>
@@ -40,23 +47,38 @@ export default async function Home() {
       </div>
 
       {/* Listing Todos */}
-      {res.map((todo: TodoProps) => (
-        <div
-          key={todo.id}
-          className=" space-x-5 p-2 border w-1/2 mx-auto flex-col rounded-lg"
-        >
-          <div className="flex items-center justify-between">
-            <ol className=" px-5 my-2">
-              <li className="text-sm">{todo.title}</li>
-            </ol>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Todos</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Delete</TableHead>
+            <TableHead>Update</TableHead>
+          </TableRow>
+        </TableHeader>
 
-            <div className="flex flex-end space-x-5">
-              <DeleteButton id={todo.id} />
-              {/* <UpdateButton id={todo.id} title={todo.title} /> */}
-            </div>
-          </div>
-        </div>
-      ))}
+        <TableBody>
+          {res.map((data: TodoProps) => (
+            <TableRow key={data.id}>
+              <TableCell className={`${data.isCompleted && 'line-through' }`}>{data.title}</TableCell>
+              <TableCell className={`${data.isCompleted && 'line-through' }`}>
+                {data.isCompleted == true ? "Completed" : "Pending"}
+              </TableCell>
+
+              <TableCell>
+                <DeleteButton id={data.id} />
+              </TableCell>
+
+              <TableCell>
+                <UpdateCheckBox id={data.id} isCompleted={data.isCompleted} />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+          
+        {/* If there are no items in the list */}
+        {res.length == 0 && <TableCaption>NO ITEMS TO DISPLAY.. </TableCaption>}
+      </Table>
     </main>
   );
 }
