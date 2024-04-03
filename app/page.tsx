@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { addTodos } from "@/app/server/actions";
 import DeleteButton, { UpdateCheckBox } from "./components/DeleteButton";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 
 interface TodoProps {
   title: string;
@@ -24,19 +26,29 @@ const URL =
     : "/api/";
 console.log("URL", URL);
 
-export default async function Home() {
-  // const url = await fetch(`${URL}/api/todos/`, {
-  const url = await fetch("http://127.0.0.1:8000/api/todos/", {
-    cache: "no-store",
-    next: {
-      tags: ["todos"],
-    },
-  });
-  const res = await url.json();
-  console.log(res);
+export default function Home() {
+  const [todos, setTodos] = useState([]);
+
+  const fetchTodos = async () => {
+    // const url = await fetch(`${URL}/todos/`, {
+    const url = await fetch("/api/todos", {
+      cache: "no-store",
+      next: {
+        tags: ["todos"],
+      },
+    });
+    const res = await url.json();
+    setTodos(res);
+    console.log(res);
+  };
+
+  useEffect(() => {
+    fetchTodos();
+  }, []);
 
   return (
     <main className="flex min-h-screen flex-col space-y-5 max-w-5xl mx-auto ">
+      <Link href="/api/todos">Hello API</Link>
       {/* Form */}
       <div className="flex flex-col w-1/2 mx-auto mt-5">
         <form action={addTodos}>
@@ -59,10 +71,12 @@ export default async function Home() {
         </TableHeader>
 
         <TableBody>
-          {res.map((data: TodoProps) => (
+          {todos.map((data: TodoProps) => (
             <TableRow key={data.id}>
-              <TableCell className={`${data.isCompleted && 'line-through' }`}>{data.title}</TableCell>
-              <TableCell className={`${data.isCompleted && 'line-through' }`}>
+              <TableCell className={`${data.isCompleted && "line-through"}`}>
+                {data.title}
+              </TableCell>
+              <TableCell className={`${data.isCompleted && "line-through"}`}>
                 {data.isCompleted == true ? "Completed" : "Pending"}
               </TableCell>
 
@@ -76,9 +90,11 @@ export default async function Home() {
             </TableRow>
           ))}
         </TableBody>
-          
+
         {/* If there are no items in the list */}
-        {res.length == 0 && <TableCaption>NO ITEMS TO DISPLAY.. </TableCaption>}
+        {todos.length == 0 && (
+          <TableCaption>NO ITEMS TO DISPLAY.. </TableCaption>
+        )}
       </Table>
     </main>
   );

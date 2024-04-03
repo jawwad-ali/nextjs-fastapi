@@ -33,13 +33,13 @@ async def lifespan(app:FastAPI):
 # FastAPI Instance
 app = FastAPI(lifespan=lifespan, title="FASTAPI WITH DB",version="1.0.0")
 
-@app.get("/api/todos") 
-def read_root():
-    return {"Hello": "Hello World from Poetry!!"}
+# @app.get("/api/todos") 
+# def read_root():
+#     return {"Hello": "Hello World from Poetry!!"}
 
-# def get_session():
-#     with Session(engine) as session:
-#         yield session
+def get_session():
+    with Session(engine) as session:
+        yield session
         
 # # # Adding TODO TO DATABASE
 # @app.post("/api/todos/", response_model=TodoHomework)
@@ -50,12 +50,12 @@ def read_root():
 #     return todo
  
 # # Fetching Todos
-# @app.get("/api/todos/", response_model=list[TodoHomework])
-# def read_todos(session: Annotated[Session, Depends(get_session)]):
-#         todos = session.exec(select(TodoHomework)).all()
-#         return todos 
+@app.get("/api/todos", response_model=list[TodoHomework])
+def read_todos(session: Annotated[Session, Depends(get_session)]):
+        todos = session.exec(select(TodoHomework)).all()
+        return todos 
  
-# # Delete Todos
+# # Delete Todos-
 # @app.delete("/api/todos/{todo_id}")
 # def delete_todo(todo_id: int, session: Annotated[Session, Depends(get_session)]):
 
