@@ -1,3 +1,4 @@
+"use client"
 import { addTodos } from "@/app/server/actions";
 import DeleteButton, { UpdateCheckBox } from "./components/DeleteButton";
 import { Input } from "@/components/ui/input";
