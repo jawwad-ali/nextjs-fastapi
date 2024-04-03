@@ -37,54 +37,54 @@ app = FastAPI(lifespan=lifespan, title="FASTAPI WITH DB",version="1.0.0")
 def read_root():
     return {"Hello": "Hello World from Poetry!!"}
 
-def get_session():
-    with Session(engine) as session:
-        yield session
+# def get_session():
+#     with Session(engine) as session:
+#         yield session
         
-# # Adding TODO TO DATABASE
-@app.post("/api/todos/", response_model=TodoHomework)
-def create_todo(todo: TodoHomework, session: Annotated[Session, Depends(get_session)]):
-    session.add(todo)
-    session.commit()
-    session.refresh(todo)
-    return todo
+# # # Adding TODO TO DATABASE
+# @app.post("/api/todos/", response_model=TodoHomework)
+# def create_todo(todo: TodoHomework, session: Annotated[Session, Depends(get_session)]):
+#     session.add(todo)
+#     session.commit()
+#     session.refresh(todo)
+#     return todo
  
-# Fetching Todos
-@app.get("/api/todos/", response_model=list[TodoHomework])
-def read_todos(session: Annotated[Session, Depends(get_session)]):
-        todos = session.exec(select(TodoHomework)).all()
-        return todos 
+# # Fetching Todos
+# @app.get("/api/todos/", response_model=list[TodoHomework])
+# def read_todos(session: Annotated[Session, Depends(get_session)]):
+#         todos = session.exec(select(TodoHomework)).all()
+#         return todos 
  
-# Delete Todos
-@app.delete("/api/todos/{todo_id}")
-def delete_todo(todo_id: int, session: Annotated[Session, Depends(get_session)]):
+# # Delete Todos
+# @app.delete("/api/todos/{todo_id}")
+# def delete_todo(todo_id: int, session: Annotated[Session, Depends(get_session)]):
 
-    statement = select(TodoHomework).where(TodoHomework.id == todo_id)
-    results = session.exec(statement)
-    todo = results.one()
+#     statement = select(TodoHomework).where(TodoHomework.id == todo_id)
+#     results = session.exec(statement)
+#     todo = results.one()
     
-    session.delete(todo)  
-    session.commit()
+#     session.delete(todo)  
+#     session.commit()
 
-    return {"message": f"{todo.title} deleted successfully"}
+#     return {"message": f"{todo.title} deleted successfully"}
 
-# Update Todo
-@app.patch("/todos/{todo_id}")
-def update_hero(todo_id: int, todo: TodoHomework , session: Annotated[Session, Depends(get_session)]):
-    db_todo = session.get(TodoHomework, todo_id)
+# # Update Todo
+# @app.patch("/todos/{todo_id}")
+# def update_hero(todo_id: int, todo: TodoHomework , session: Annotated[Session, Depends(get_session)]):
+#     db_todo = session.get(TodoHomework, todo_id)
 
-    print("OLD db todo",db_todo , todo.isCompleted , todo_id)
+#     print("OLD db todo",db_todo , todo.isCompleted , todo_id)
     
-    if not db_todo:
-        raise HTTPException(status_code=404, detail="Hero not found")
+#     if not db_todo:
+#         raise HTTPException(status_code=404, detail="Hero not found")
 
-    todo_data = todo.model_dump(exclude_unset=True)
-    db_todo.sqlmodel_update(todo_data)
+#     todo_data = todo.model_dump(exclude_unset=True)
+#     db_todo.sqlmodel_update(todo_data)
 
-    session.add(db_todo)
-    session.commit()
-    session.refresh(db_todo)
+#     session.add(db_todo)
+#     session.commit()
+#     session.refresh(db_todo)
 
-    print("updateTodo",db_todo)
+#     print("updateTodo",db_todo)
 
-    return db_todo
+#     return db_todo
