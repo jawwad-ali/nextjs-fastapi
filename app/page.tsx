@@ -23,7 +23,7 @@ interface TodoProps {
 const URL =
   process.env.NODE_ENV === "development"
     ? "http://127.0.0.1:8000/api"
-    : "/api/";
+    : `${process.env.NEXT_PUBLIC_DEPLOYED_URL}/api`;
 console.log("URL", URL);
 
 export default function Home() {
