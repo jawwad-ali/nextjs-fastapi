@@ -6,4 +6,4 @@ try:
 except FileNotFoundError: 
     config = Config()   
  
-DATABASE_URL = config("DATABASE_URL", cast=Secret)
+DATABASE_URL:str = config("DATABASE_URL", cast=Secret)

@@ -1,0 +1,23 @@
+services:
+  web:
+    build:
+      context: .
+
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./api/todo
+    ports:
+      - 4499:8000
+    # volumes:
+    #   - /api/todo:/app  # Optional: Mount local directory for live code editing
+    #   - /app/poetry_cache:/root/.cache/pyproject.toml  # Optional: Cache Poetry's downloaded packages
+    environment:
+      DATABASE_URL: "postgresql://alijawwad001:o7ApVljPtEI6@ep-fancy-limit-a5emb5bv.us-east-2.aws.neon.tech/practice?sslmode=require" # Example environment variable, adjust as needed

@@ -1,17 +1,6 @@
-"use client";
 import { addTodos } from "@/app/server/actions";
-import DeleteButton, { UpdateCheckBox } from "./components/DeleteButton";
+import DeleteButton from "./components/DeleteButton";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useState, useEffect } from "react";
 import Link from "next/link";
 
 interface TodoProps {
@@ -20,31 +9,22 @@ interface TodoProps {
   id: number;
 }
 
-const URL =
-  process.env.NODE_ENV === "development"
-    ? "http://127.0.0.1:8000/api"
-    : `${process.env.NEXT_PUBLIC_DEPLOYED_URL}/api`;
-console.log("URL", URL);
-
-export default function Home() {
-  const [todos, setTodos] = useState([]);
-
+export default async  function Home() {
   const fetchTodos = async () => {
-    // const url = await fetch(`${URL}/todos/`, {
-    const url = await fetch("/api/todos", {
+    // const url = await fetch("http://127.0.0.1:4499/api/todos", {
+      const url = await fetch("http://backend:8000/api/todos", {
       cache: "no-store",
       next: {
         tags: ["todos"],
       },
     });
     const res = await url.json();
-    setTodos(res);
     console.log(res);
+    return res
   };
 
-  useEffect(() => {
-    fetchTodos();
-  }, []);
+
+  const todos = await fetchTodos();
 
   return (
     <main className="flex min-h-screen flex-col space-y-5 max-w-5xl mx-auto ">
@@ -60,42 +40,22 @@ export default function Home() {
       </div>
 
       {/* Listing Todos */}
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Todos</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Delete</TableHead>
-            <TableHead>Update</TableHead>
-          </TableRow>
-        </TableHeader>
+      {todos.map((data: TodoProps) => (
+        <div key={data.id} className="w-full flex items-center justify-around">
+          {data.title}
 
-        <TableBody>
-          {todos.map((data: TodoProps) => (
-            <TableRow key={data.id}>
-              <TableCell className={`${data.isCompleted && "line-through"}`}>
-                {data.title}
-              </TableCell>
-              <TableCell className={`${data.isCompleted && "line-through"}`}>
-                {data.isCompleted == true ? "Completed" : "Pending"}
-              </TableCell>
+          <p className="underline">{data.isCompleted == true ? "Completed" : "Pending"} </p>
 
-              <TableCell>
-                <DeleteButton id={data.id} />
-              </TableCell>
+          <DeleteButton id={data.id} />
 
-              <TableCell>
-                <UpdateCheckBox id={data.id} isCompleted={data.isCompleted} />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+          {/* <UpdateCheckBox id={data.id} isCompleted={data.isCompleted} /> */}
+        </div>
+      ))}
 
-        {/* If there are no items in the list */}
-        {todos.length == 0 && (
-          <TableCaption>NO ITEMS TO DISPLAY.. </TableCaption>
-        )}
-      </Table>
-    </main>
+      {/* If there are no items in the list */}
+      {todos.length == 0 && (
+        <div>NO ITEMS TO DISPLAY.. </div>
+      )}
+    </main >
   );
 }
