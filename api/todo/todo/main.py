@@ -35,7 +35,7 @@ app = FastAPI(lifespan=lifespan, title="FASTAPI WITH DB",version="1.0.0")
 
 def get_session():
     with Session(engine) as session:
-        yield session
+        yield session 
         
 # # # Adding TODO TO DATABASE
 @app.post("/api/todos/", response_model=TodoHomework)
@@ -64,23 +64,6 @@ def delete_todo(todo_id: int, session: Annotated[Session, Depends(get_session)])
 
     return {"message": f"{todo.title} deleted successfully"}
 
-# # Update Todo
-# @app.patch("/todos/{todo_id}")
-# def update_hero(todo_id: int, todo: TodoHomework , session: Annotated[Session, Depends(get_session)]):
-#     db_todo = session.get(TodoHomework, todo_id)
 
-#     print("OLD db todo",db_todo , todo.isCompleted , todo_id)
-    
-#     if not db_todo:
-#         raise HTTPException(status_code=404, detail="Hero not found")
 
-#     todo_data = todo.model_dump(exclude_unset=True)
-#     db_todo.sqlmodel_update(todo_data)
-
-#     session.add(db_todo)
-#     session.commit()
-#     session.refresh(db_todo)
-
-#     print("updateTodo",db_todo)
-
-#     return db_todo
+# With Kakfa

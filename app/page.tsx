@@ -7,7 +7,7 @@ interface TodoProps {
   title: string;
   isCompleted: boolean;
   id: number;
-}
+} 
 
 export default async  function Home() {
   const fetchTodos = async () => {
@@ -19,7 +19,7 @@ export default async  function Home() {
       },
     });
     const res = await url.json();
-    console.log(res);
+    console.log(res); 
     return res
   };
 
