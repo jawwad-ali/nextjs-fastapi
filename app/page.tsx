@@ -4,20 +4,19 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 
 interface TodoProps {
-  title: string;
+  title: string; 
   isCompleted: boolean;
   id: number;
 } 
 
 export default async  function Home() {
   const fetchTodos = async () => {
-    // const url = await fetch("http://127.0.0.1:4499/api/todos", {
       const url = await fetch("http://backend:8000/api/todos", {
       cache: "no-store",
-      next: {
+      next: { 
         tags: ["todos"],
       },
-    });
+    }); 
     const res = await url.json();
     console.log(res); 
     return res

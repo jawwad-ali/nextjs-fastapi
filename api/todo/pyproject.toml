@@ -13,6 +13,9 @@ psycopg = {extras = ["binary"], version = "^3.1.18"}
 pytest = "^8.0.2"
 httpx = "^0.27.0"
 sqlmodel = "^0.0.16"
+aiokafka = "^0.10.0"
+openai = "^1.30.5"
+google-generativeai = "^0.5.4"
 
 
 [build-system]

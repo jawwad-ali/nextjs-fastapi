@@ -1,6 +1,36 @@
 "use server"
 
 import { revalidateTag } from "next/cache";
+import { Kafka, ProducerRecord } from "kafkajs"
+
+// Kafka Instance 
+const kafka = new Kafka({
+    clientId: 'my-app',
+    brokers: ['broker:19092'],
+})
+ 
+// Kafka Producer
+const producer = kafka.producer()
+
+export async function sendMessage( message: any) {
+    try {
+        await producer.connect()
+        const record: ProducerRecord = {
+            topic:"nextasproducer",
+            messages: [{ 
+                value: JSON.stringify(message) 
+            }]
+        }
+        await producer.send((record) as any)
+        console.log(`Message sent to topic: ${record.topic}  message: ${message}`);
+    }
+    catch (err) {
+        console.error('Could not send message ', err);
+    } finally {
+        // Disconnect the producer
+        await producer.disconnect();
+    }
+}
 
 // Add Todos
 export const addTodos = async (e: FormData) => {
@@ -8,15 +38,17 @@ export const addTodos = async (e: FormData) => {
     let title = e.get("title") as string;
     console.log("serverTodo", title)
 
+    // Sending events to kafka 
+    await sendMessage(title)
+
     if (!title) return
 
     // await fetch(`${URL}/todos/` , {
-        await fetch("http://backend:8000/api/todos/", {
+    await fetch("http://backend:8000/api/todos/", {
         method: "POST",
         body: JSON.stringify({
             title: title,
         }),
-
         headers: {
             "Content-Type": "application/json"
         }
@@ -33,7 +65,7 @@ export const deleteTodos = async (todo_id: number) => {
     await fetch(`http://backend:8000/api/todos/${todo_id}`, {
         method: "DELETE",
         body: JSON.stringify({
-            todo_id: todo_id 
+            todo_id: todo_id
         }),
         headers: {
             "Content-Type": "application/json"
