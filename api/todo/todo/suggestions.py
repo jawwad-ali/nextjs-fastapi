@@ -1,5 +1,7 @@
 import os
 import google.generativeai as genai
+from aiokafka import AIOKafkaProducer
+from fastapi import HTTPException
 
 genai.configure(api_key=os.environ["Gemini_API_KEY"])
 generation_config = {
@@ -15,10 +17,27 @@ model = genai.GenerativeModel(
   generation_config=generation_config,
 )
 
-chat_session = model.start_chat(history=[])
+chat_session = model.start_chat(history=[]) 
+
+# Kafka Producer as a dependency
+producer = AIOKafkaProducer(bootstrap_servers='broker:19092')
+async def get_kafka_producer():
+    # FastAPI Producer function. events will be fired on "aisuggestions" topic  
+    await producer.start()
+    try:
+        yield producer
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+    
+    finally:
+        await producer.stop()
+
+
 
 async def send_suggestion(word:str):
     print("Crazy stuff dude.. "+ word )
-    response = chat_session.send_message("give a 2 one word suggesstions related to " + word)
+    response = chat_session.send_message("give two a one-word suggesstions related to " + word)
 
-    print("Gemini Response =>> ",response.text)
+    print("Gemini Response =>> ",  response.text)
+    return response.text

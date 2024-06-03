@@ -4,9 +4,9 @@ from typing import Optional, Annotated
 from sqlmodel import Field, SQLModel, create_engine, Session, select
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 import asyncio 
-
+import json
 from todo import settings 
-from suggestions import send_suggestion
+from todo.suggestions import send_suggestion, get_kafka_producer
 
 # Making Todo table with data validation 
 class TodoHomework(SQLModel , table=True): 
@@ -14,6 +14,7 @@ class TodoHomework(SQLModel , table=True):
     title: Optional[str] = Field(index=True) 
     isCompleted: Optional[bool] = Field(default=False , index=True)
     
+
 connection_string = str(settings.DATABASE_URL).replace(  
     "postgresql", "postgresql+psycopg" 
 )   
@@ -31,13 +32,14 @@ def create_db_and_tables():
 
 # Kafka Consumer Function
 async def consume_messages(topic, bootstrap_servers):
+    # Consumer Function for "nextasproducer" topics
     # Create a consumer instance.
     consumer = AIOKafkaConsumer(
         topic,
         bootstrap_servers=bootstrap_servers,
         group_id="my-todos-group",
         auto_offset_reset='earliest' 
-    )
+    ) 
 
     # Start the consumer.
     await consumer.start()
@@ -47,6 +49,7 @@ async def consume_messages(topic, bootstrap_servers):
             print(message)
             print(f"Received message: {message.value.decode()} on topic {message.topic}")
             await send_suggestion(message.value.decode())
+
             # Here you can add code to process each message. 
             # Example: parse the message, store it in a database, etc.
     finally: 
@@ -56,43 +59,53 @@ async def consume_messages(topic, bootstrap_servers):
 
 @asynccontextmanager
 async def lifespan(app:FastAPI):
-    asyncio.create_task(consume_messages('nextasproducer', 'broker:19092'))
+    asyncio.create_task(consume_messages('nextasproducer', 'broker:19092')) 
     yield
 
 
 # FastAPI Instance
 app = FastAPI(lifespan=lifespan, title="FASTAPI WITH DB",version="1.0.0")
 
+
+# Database Session
 def get_session():
     with Session(engine) as session:
         yield session 
 
-# Kafka Producer as a dependency
-async def get_kafka_producer():
-    producer = AIOKafkaProducer(bootstrap_servers='broker:19092')
-    await producer.start()
-    try:
-        yield producer
-    finally:
-        await producer.stop()
+
 
 # # # Adding TODO TO DATABASE
 @app.post("/api/todos/", response_model=TodoHomework)
-async def create_todo(todo: TodoHomework, session: Annotated[Session, Depends(get_session)] , producer:Annotated[AIOKafkaProducer, Depends(get_session)]):
+async def create_todo(todo: TodoHomework, session: Annotated[Session, Depends(get_session)] , 
+                      producer:Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
     
+    todo_dict = {field: getattr(todo, field) for field in todo.dict()}
+    todo_json = json.dumps(todo_dict).encode("utf-8")
+    print("todoProducerJSON:", todo_json) 
+ 
+    # Convert the JSON string to a dictionary to extract the title
+    todo_dict_from_json = json.loads(todo_json.decode("utf-8"))
+    title = todo_dict_from_json.get("title")
+    print("Title:", title)
+    
+    suggest:str = await send_suggestion(title)
+    print(type(suggest))  
+
+
     # Sending AI SUGGESSTIONS to the kafka topics
-    prodMessage = await producer.send_and_wait("aisuggestions", b"Super message")
-    print("prodMessage",prodMessage)
-    
+    producer_record = await producer.send_and_wait("aisuggestions", suggest.encode('utf-8'))
+    print("producer_record",producer_record) 
+     
     session.add(todo)
     session.commit()
     session.refresh(todo)
     return todo
+    
  
 # # Fetching Todos
 @app.get("/api/todos", response_model=list[TodoHomework])
 def read_todos(session: Annotated[Session, Depends(get_session)]):
-        todos = session.exec(select(TodoHomework)).all()
+        todos = session.exec(select(TodoHomework)).all() 
         return todos 
  
 # # Delete Todos-
